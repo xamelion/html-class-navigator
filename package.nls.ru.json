@@ -1,0 +1,6 @@
+{
+    "menu.contextMenu.rename": "Переименовать класс",
+    "menu.contextMenu.addClass": "Добавить новый класс",
+    "menu.contextMenu.addSubClass": "Добавить подкласс",
+    "menu.contextMenu.removeClass": "Удалить класс"
+}
