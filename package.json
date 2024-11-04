@@ -115,5 +115,10 @@
     "lodash": "^4.17.21",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.6.3"
+  },
+  "publisher": "1xamelion1",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:xamelion/html-class-navigator.git"
   }
 }
