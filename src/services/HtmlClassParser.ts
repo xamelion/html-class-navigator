@@ -122,7 +122,7 @@ export class HtmlClassParser {
   }
 
   /**
-   * Сор��ирует элементы дерева по устройствам и алфавиту
+   * Сортирует элементы дерева по устройствам и алфавиту
    */
   private static sortTreeItems(items: TreeItem[]): TreeItem[] {
     return map(
@@ -144,20 +144,27 @@ export class HtmlClassParser {
    */
   public static async updateClassName(
     document: vscode.TextDocument,
-    oldClassName: string,
-    newClassName: string
+    oldClassNamePath: string,
+    newClassNamePath: string
   ): Promise<boolean> {
     const documentText = document.getText();
-    const classPattern = new RegExp(
-      `(class\\s*=\\s*["'][^"']*)(\\b${this.escapeRegExp(oldClassName)}\\b)([^"']*["'])`,
-      'g'
-    );
+    const classPattern = /class\s*=\s*["']([^"']*)["']/g;
 
-    const updatedText = documentText.replace(classPattern, (match, prefix, classToReplace, suffix) => {
-      return `${prefix}${newClassName}${suffix}`;
+    let hasReplaced = false;
+
+    const updatedText = documentText.replace(classPattern, (match, classAttrValue) => {
+      const classList = classAttrValue.split(/\s+/);
+      const updatedClassList = classList.map(cls => {
+        if (cls === oldClassNamePath) {
+          hasReplaced = true;
+          return newClassNamePath;
+        }
+        return cls;
+      });
+      return `class="${updatedClassList.join(' ')}"`;
     });
 
-    if (updatedText === documentText) {
+    if (!hasReplaced) {
       return false; // Ничего не заменено
     }
 

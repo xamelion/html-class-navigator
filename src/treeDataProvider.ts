@@ -149,10 +149,10 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
       return;
     }
 
-    // Создаем новый полный путь для класса
+    // Проверяем, является ли newParentItem корнем
     const newClassNamePath = newParentItem.classNamePath
       ? `${newParentItem.classNamePath}:${item.className}`
-      : item.className;
+      : item.className; // Если корень, используем только имя класса
 
     // Пытаемся обновить имя класса во всем документе
     const success = await HtmlClassParser.updateClassName(

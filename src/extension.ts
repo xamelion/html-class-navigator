@@ -19,6 +19,18 @@ export function activate(context: vscode.ExtensionContext) {
       handleDrop: async (target: TreeItem, dataTransfer: vscode.DataTransfer) => {
         const source = dataTransfer.get('application/vnd.code.tree.classNavigator')?.value as TreeItem;
         if (source) {
+          // Проверка на перетаскивание элемента на самого себя
+          if (source.classNamePath === target.classNamePath) {
+            vscode.window.showWarningMessage(vscode.l10n.t('Нельзя переместить элемент на самого себя.'));
+            return;
+          }
+
+          // Проверка на создание циклической зависимости
+          if (target.classNamePath.startsWith(source.classNamePath)) {
+            vscode.window.showWarningMessage(vscode.l10n.t('Нельзя переместить элемент в его потомка.'));
+            return;
+          }
+
           await treeDataProvider.moveClass(source, target);
         }
       }
