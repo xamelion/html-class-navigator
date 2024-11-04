@@ -49,6 +49,12 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
       ]);
     }
 
+    if(!editor || !editor.selection) {
+      return Promise.resolve([
+        this.createMessageItem(vscode.l10n.t('message.placeCursorInClassAttribute'))
+      ]);
+    }
+
     const classValue = HtmlClassParser.findClassAtCursor(
       editor.document,
       editor.selection.active
@@ -186,19 +192,26 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
   // Метод для перемещения класса в новое место
   public async moveClass(item: TreeItem, newParentItem: TreeItem): Promise<void> {
-    console.log(`Moving class: ${item.className} to new parent: ${newParentItem.className}`);
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       vscode.window.showErrorMessage(vscode.l10n.t("error.noActiveEditor"));
       return;
     }
 
-    // Проверяем, является ли newParentItem корнем
-    const newClassNamePath = newParentItem.classNamePath
-      ? `${newParentItem.classNamePath}:${item.className}`
-      : item.className; // Если корень, используем только имя класса
+    // Получаем префикс из нового родителя
+    const newPrefix = newParentItem.className;
+    
+    // Получаем текущие подклассы из item
+    const currentSubClasses = item.classNamePath.split(':').slice(1);
+    
+    // Формируем новый путь для каждого подкласса с новым префиксом
+    const newClassPaths = currentSubClasses.map(subClass => `${newPrefix}:${subClass}`);
+    
+    // Если подклассов нет, используем просто новый путь с префиксом
+    const newClassNamePath = newClassPaths.length > 0 
+      ? newClassPaths.join(' ')
+      : `${newPrefix}:${item.className}`;
 
-    // Пытаемся обновить имя класса во всем документе
     const success = await HtmlClassParser.updateClassName(
       editor.document,
       item.classNamePath,
@@ -211,7 +224,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     this.refreshTree();
-    console.log(`Class moved successfully: ${item.className} to ${newParentItem.className}`);
   }
 
   // Добавляем новый метод для перемещения в корень

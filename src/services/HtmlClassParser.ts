@@ -11,7 +11,7 @@ import {
   compact,
   includes,
   replace
-} from 'lodash-es';
+} from 'lodash';
 
 /**
  * Интерфейс для описания устройств
@@ -69,7 +69,9 @@ export class HtmlClassParser {
     classNameParts: string[],
     parentPath: string
   ): void {
-    if (classNameParts.length === 0) return;
+    if (classNameParts.length === 0) {
+      return;
+    }
 
     const currentClassName = classNameParts[0];
     const currentPath = parentPath ? `${parentPath}:${currentClassName}` : currentClassName;
@@ -155,7 +157,7 @@ export class HtmlClassParser {
 
     const updatedText = documentText.replace(classPattern, (match, classAttrValue) => {
       const classList = classAttrValue.split(/\s+/);
-      const updatedClassList = classList.map(cls => {
+      const updatedClassList = classList.map((cls: string) => {
         if (cls === oldClassNamePath || cls.startsWith(`${oldClassNamePath}:`)) {
           hasReplaced = true;
           return cls.replace(oldClassNamePath, newClassNamePath);
@@ -214,9 +216,13 @@ export class HtmlClassParser {
   ): Promise<boolean> {
     return this.processClassAtCursor(document, position, (matchResult, cursorOffset, classValueStart, classValueEnd) => {
       if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
-        const updatedClasses = map(split(matchResult[2], /\s+/), cls => {
-          if (cls === parentClassName) return `${parentClassName}:${subClassName}`;
-          if (cls.startsWith(`${parentClassName}:`)) return `${cls} ${parentClassName}:${subClassName}`;
+        const updatedClasses = map(split(matchResult[2], /\s+/), (cls: string) => {
+          if (cls === parentClassName) {
+            return `${parentClassName}:${subClassName}`;
+          }
+          if (cls.startsWith(`${parentClassName}:`)) {
+            return `${cls} ${parentClassName}:${subClassName}`;
+          }
           return cls;
         });
         return this.applyEdit(document, classValueStart, classValueEnd, join(updatedClasses, ' '));
@@ -235,7 +241,7 @@ export class HtmlClassParser {
   ): Promise<boolean> {
     return this.processClassAtCursor(document, position, (matchResult, cursorOffset, classValueStart, classValueEnd) => {
       if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
-        const currentClasses = split(matchResult[2], /\s+/).filter(cls => {
+        const currentClasses = split(matchResult[2], /\s+/).filter((cls: string) => {
           // Извлекаем имя класса без префикса устройства
           const parts = cls.split(':');
           const className = parts[parts.length - 1];
@@ -301,7 +307,7 @@ export class HtmlClassParser {
     const updatedText = replace(documentText, classPattern, (match, classGroup) => {
       const updatedClasses = map(
         split(classGroup, /\s+/),
-        className => modifyCallback(split(className, ":"))
+        (className: string) => modifyCallback(split(className, ":"))
       );
       return `class="${join(updatedClasses, ' ')}"`;
     });
