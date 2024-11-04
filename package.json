@@ -80,7 +80,8 @@
       "treeViewExplorer": [
         {
           "id": "classNavigator",
-          "name": "HTML Class Navigator"
+          "name": "HTML Class Navigator",
+          "dragAndDrop": true
         }
       ]
     }

@@ -11,6 +11,7 @@
   "error.addClassFailed": "Failed to add class",
   "error.renameClassFailed": "Failed to rename class",
   "error.removeClassFailed": "Failed to remove class",
+  "error.moveClassFailed": "Failed to move class",
   "message.selectHtmlFile": "Select an HTML file",
   "message.placeCursorInClassAttribute": "Place the cursor in the \"class\" attribute",
   "confirm.yes": "Yes",

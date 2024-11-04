@@ -140,4 +140,32 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     this.refreshTree();
   }
+
+  // Метод для перемещения класса в новое место
+  public async moveClass(item: TreeItem, newParentItem: TreeItem): Promise<void> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage(vscode.l10n.t("error.noActiveEditor"));
+      return;
+    }
+
+    // Создаем новый полный путь для класса
+    const newClassNamePath = newParentItem.classNamePath
+      ? `${newParentItem.classNamePath}:${item.className}`
+      : item.className;
+
+    // Пытаемся обновить имя класса во всем документе
+    const success = await HtmlClassParser.updateClassName(
+      editor.document,
+      item.classNamePath,
+      newClassNamePath
+    );
+
+    if (!success) {
+      vscode.window.showErrorMessage(vscode.l10n.t("error.moveClassFailed"));
+      return;
+    }
+
+    this.refreshTree();
+  }
 }

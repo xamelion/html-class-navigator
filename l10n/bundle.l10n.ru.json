@@ -11,6 +11,7 @@
   "error.addClassFailed": "Не удалось добавить класс",
   "error.renameClassFailed": "Не удалось переименовать класс",
   "error.removeClassFailed": "Не удалось удалить класс",
+  "error.moveClassFailed": "Не удалось переместить класс",
   "message.selectHtmlFile": "Выберите HTML файл",
   "message.placeCursorInClassAttribute": "Поставьте курсор в атрибут \"class\"",
   "confirm.yes": "Да",

@@ -122,7 +122,7 @@ export class HtmlClassParser {
   }
 
   /**
-   * Сортирует элементы дерева по устройствам и алфавиту
+   * Сор��ирует элементы дерева по устройствам и алфавиту
    */
   private static sortTreeItems(items: TreeItem[]): TreeItem[] {
     return map(
@@ -140,19 +140,41 @@ export class HtmlClassParser {
   }
 
   /**
-   * Обновляет имя класса в документе
+   * Обновляет имя класса во всем документе
    */
-  public static updateClassName(
+  public static async updateClassName(
     document: vscode.TextDocument,
     oldClassName: string,
     newClassName: string
-  ): Thenable<boolean> {
-    return this.modifyClassInDocument(document, oldClassName, classParts => {
-      if (includes(classParts, oldClassName)) {
-        classParts[classParts.indexOf(oldClassName)] = newClassName;
-      }
-      return join(classParts, ":");
+  ): Promise<boolean> {
+    const documentText = document.getText();
+    const classPattern = new RegExp(
+      `(class\\s*=\\s*["'][^"']*)(\\b${this.escapeRegExp(oldClassName)}\\b)([^"']*["'])`,
+      'g'
+    );
+
+    const updatedText = documentText.replace(classPattern, (match, prefix, classToReplace, suffix) => {
+      return `${prefix}${newClassName}${suffix}`;
     });
+
+    if (updatedText === documentText) {
+      return false; // Ничего не заменено
+    }
+
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(
+      document.positionAt(0),
+      document.positionAt(documentText.length)
+    );
+    edit.replace(document.uri, fullRange, updatedText);
+    return await vscode.workspace.applyEdit(edit);
+  }
+
+  /**
+   * Экранирует специальные символы в строке для использования в регулярном выражении
+   */
+  private static escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**

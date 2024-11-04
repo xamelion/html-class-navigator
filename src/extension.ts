@@ -9,7 +9,20 @@ export function activate(context: vscode.ExtensionContext) {
   const treeDataProvider = new TreeDataProvider();
   
   const treeView = vscode.window.createTreeView('classNavigator', {
-    treeDataProvider: treeDataProvider
+    treeDataProvider: treeDataProvider,
+    dragAndDropController: {
+      dropMimeTypes: ['application/vnd.code.tree.classNavigator'],
+      dragMimeTypes: ['application/vnd.code.tree.classNavigator'],
+      handleDrag: (sources: readonly TreeItem[], dataTransfer: vscode.DataTransfer) => {
+        dataTransfer.set('application/vnd.code.tree.classNavigator', new vscode.DataTransferItem(sources[0]));
+      },
+      handleDrop: async (target: TreeItem, dataTransfer: vscode.DataTransfer) => {
+        const source = dataTransfer.get('application/vnd.code.tree.classNavigator')?.value as TreeItem;
+        if (source) {
+          await treeDataProvider.moveClass(source, target);
+        }
+      }
+    }
   });
 
   // Регистрация команд
