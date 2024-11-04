@@ -109,20 +109,27 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
   public async renameClass(item: TreeItem, newClassName: string): Promise<void> {
     console.log(`Renaming class: ${item.className} to ${newClassName}`);
-    const oldClassName = item.className;
-    item.className = newClassName;
-
+    const oldClassNamePath = item.classNamePath;
+    // Создаем новый путь, заменяя только последнюю часть пути
+    const newClassNamePath = item.classNamePath.replace(item.className, newClassName);
+    
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-      const success = await HtmlClassParser.updateClassName(editor.document, oldClassName, newClassName);
+      const success = await HtmlClassParser.updateClassName(
+        editor.document,
+        oldClassNamePath,
+        newClassNamePath
+      );
       if (!success) {
         vscode.window.showErrorMessage(vscode.l10n.t("error.renameClassFailed"));
         return;
       }
     }
 
+    item.className = newClassName;
+    item.classNamePath = newClassNamePath;
     this.refreshTree();
-    console.log(`Class renamed successfully: ${oldClassName} to ${newClassName}`);
+    console.log(`Class renamed successfully: ${oldClassNamePath} to ${newClassNamePath}`);
   }
 
   public async removeClass(item: TreeItem): Promise<void> {

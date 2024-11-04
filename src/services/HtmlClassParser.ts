@@ -147,17 +147,20 @@ export class HtmlClassParser {
     oldClassNamePath: string,
     newClassNamePath: string
   ): Promise<boolean> {
+    console.log(`Updating class name from "${oldClassNamePath}" to "${newClassNamePath}"`);
     const documentText = document.getText();
     const classPattern = /class\s*=\s*["']([^"']*)["']/g;
 
     let hasReplaced = false;
 
     const updatedText = documentText.replace(classPattern, (match, classAttrValue) => {
+      console.log(`Found class attribute: ${classAttrValue}`);
       const classList = classAttrValue.split(/\s+/);
       const updatedClassList = classList.map(cls => {
-        if (cls === oldClassNamePath) {
+        if (cls === oldClassNamePath || cls.startsWith(`${oldClassNamePath}:`)) {
+          console.log(`Replacing "${cls}" with "${cls.replace(oldClassNamePath, newClassNamePath)}"`);
           hasReplaced = true;
-          return newClassNamePath;
+          return cls.replace(oldClassNamePath, newClassNamePath);
         }
         return cls;
       });
@@ -165,6 +168,7 @@ export class HtmlClassParser {
     });
 
     if (!hasReplaced) {
+      console.log(`No occurrences of "${oldClassNamePath}" found.`);
       return false; // Ничего не заменено
     }
 
@@ -174,7 +178,11 @@ export class HtmlClassParser {
       document.positionAt(documentText.length)
     );
     edit.replace(document.uri, fullRange, updatedText);
-    return await vscode.workspace.applyEdit(edit);
+    const success = await vscode.workspace.applyEdit(edit);
+    if (!success) {
+      console.log(`Failed to apply edit for renaming class.`);
+    }
+    return success;
   }
 
   /**
