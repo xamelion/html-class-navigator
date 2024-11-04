@@ -243,7 +243,10 @@ export class HtmlClassParser {
       const classValueEnd = classValueStart + matchResult[2].length;
 
       if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
-        const currentClasses = matchResult[2].split(/\s+/).filter(cls => cls !== classNameToRemove);
+        const currentClasses = matchResult[2].split(/\s+/).filter(cls => {
+          // Удаляем класс и все его подклассы
+          return !cls.startsWith(`${classNameToRemove}:`) && cls !== classNameToRemove;
+        });
         const newValue = currentClasses.join(' ');
 
         const edit = new vscode.WorkspaceEdit();
