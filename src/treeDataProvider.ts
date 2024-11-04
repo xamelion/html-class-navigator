@@ -31,7 +31,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     const editor = vscode.window.activeTextEditor;
     if (!this.isValidHtmlEditor(editor)) {
-      return Promise.resolve([this.createMessageItem("Выберите HTML файл")]);
+      return Promise.resolve([this.createMessageItem(vscode.l10n.t("message.selectHtmlFile"))]);
     }
 
     const classValue = HtmlClassParser.findClassAtCursor(
@@ -40,7 +40,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     );
 
     if (!classValue) {
-      return Promise.resolve([this.createMessageItem('Поставьте курсор в атрибут "class"')]);
+      return Promise.resolve([this.createMessageItem(vscode.l10n.t('message.placeCursorInClassAttribute'))]);
     }
 
     return Promise.resolve(HtmlClassParser.createClassTree(classValue));
@@ -61,7 +61,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   public async addNewClass(className: string): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showErrorMessage("Нет активного редактора");
+      vscode.window.showErrorMessage(vscode.l10n.t("error.noActiveEditor"));
       return;
     }
 
@@ -73,7 +73,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     );
 
     if (!success) {
-      vscode.window.showErrorMessage("Не удалось добавить класс");
+      vscode.window.showErrorMessage(vscode.l10n.t("error.addClassFailed"));
       return;
     }
 
@@ -83,7 +83,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   public async addSubClass(parentItem: TreeItem, subClassName: string): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showErrorMessage("Нет активного редактора");
+      vscode.window.showErrorMessage(vscode.l10n.t("error.noActiveEditor"));
       return;
     }
 
@@ -96,7 +96,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     );
 
     if (!success) {
-      vscode.window.showErrorMessage("Не удалось добавить подкласс");
+      vscode.window.showErrorMessage(vscode.l10n.t("error.addClassFailed"));
       return;
     }
 
@@ -111,7 +111,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     if (editor) {
       const success = await HtmlClassParser.updateClassName(editor.document, oldClassName, newClassName);
       if (!success) {
-        vscode.window.showErrorMessage("Не удалось переименовать класс.");
+        vscode.window.showErrorMessage(vscode.l10n.t("error.renameClassFailed"));
         return;
       }
     }
@@ -122,7 +122,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   public async removeClass(item: TreeItem): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      vscode.window.showErrorMessage("Нет активного редактора");
+      vscode.window.showErrorMessage(vscode.l10n.t("error.noActiveEditor"));
       return;
     }
 
@@ -134,7 +134,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     );
 
     if (!success) {
-      vscode.window.showErrorMessage("Не удалось удалить класс");
+      vscode.window.showErrorMessage(vscode.l10n.t("error.removeClassFailed"));
       return;
     }
 

@@ -16,45 +16,55 @@
     "onCommand:classNavigator.addSubClass"
   ],
   "main": "./dist/extension.js",
+  "l10n": "./l10n",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
   "contributes": {
     "menus": {
       "view/title": [
         {
           "command": "classNavigator.addClass",
-          "when": "view == classNavigator"
+          "when": "view == classNavigator",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "classNavigator.rename",
-          "when": "view == classNavigator && viewItem == 'renameable'"
+          "when": "view == classNavigator && viewItem == 'renameable'",
+          "group": "1_modification"
         },
         {
           "command": "classNavigator.addSubClass",
-          "when": "view == classNavigator && viewItem == 'renameable'"
+          "when": "view == classNavigator && viewItem == 'renameable'",
+          "group": "1_modification"
         },
         {
           "command": "classNavigator.removeClass",
-          "when": "view == classNavigator && viewItem == 'renameable'"
+          "when": "view == classNavigator && viewItem == 'renameable'",
+          "group": "2_modification"
         }
       ]
     },
     "commands": [
       {
         "command": "classNavigator.rename",
-        "title": "Переименовать класс"
+        "title": "%menu.contextMenu.rename%"
       },
       {
         "command": "classNavigator.addClass",
-        "title": "Добавить новый класс"
+        "title": "%menu.contextMenu.addClass%"
       },
       {
         "command": "classNavigator.addSubClass",
-        "title": "Добавить подкласс"
+        "title": "%menu.contextMenu.addSubClass%"
       },
       {
         "command": "classNavigator.removeClass",
-        "title": "Удалить класс"
+        "title": "%menu.contextMenu.removeClass%"
       }
     ],
     "viewsContainers": {

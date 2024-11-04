@@ -3,68 +3,72 @@ import { TreeDataProvider } from './treeDataProvider';
 import { TreeItem } from './models/TreeItem';
 
 export function activate(context: vscode.ExtensionContext) {
+  // Удаляем инициализацию локализации через config, она больше не нужна
+  // VSCode автоматически загрузит файлы из папки l10n
+  
   const treeDataProvider = new TreeDataProvider();
   
-  // Регистрация древовидного представления
-  const treeView = vscode.window.registerTreeDataProvider('classNavigator', treeDataProvider);
+  const treeView = vscode.window.createTreeView('classNavigator', {
+    treeDataProvider: treeDataProvider
+  });
 
   // Регистрация команд
   const commands = [
     vscode.commands.registerCommand("classNavigator.rename", async (item: TreeItem) => {
       const newClassName = await vscode.window.showInputBox({
-        prompt: "Введите новое имя класса",
+        prompt: vscode.l10n.t("prompt.renameClass"),
         value: item.className,
         validateInput: (value) => {
-          return value && value.trim() ? null : 'Имя класса не может быть пустым';
+          return value && value.trim() ? null : vscode.l10n.t('validation.emptyClassName');
         }
       });
 
       if (newClassName) {
-        await treeDataProvider.renameClass(item, newClassName.trim()); // Ждем завершения переименования
+        await treeDataProvider.renameClass(item, newClassName.trim());
       }
     }),
 
     vscode.commands.registerCommand("classNavigator.addClass", async () => {
       const className = await vscode.window.showInputBox({
-        prompt: "Введите имя нового класса",
+        prompt: vscode.l10n.t("prompt.addClass"),
         validateInput: (value) => {
-          return value && value.trim() ? null : 'Имя класса не может быть пустым';
+          return value && value.trim() ? null : vscode.l10n.t('validation.emptyClassName');
         }
       });
 
       if (className) {
-        await treeDataProvider.addNewClass(className.trim()); // Добавлен await
+        await treeDataProvider.addNewClass(className.trim());
       }
     }),
 
     vscode.commands.registerCommand("classNavigator.addSubClass", async (item: TreeItem) => {
       const subClassName = await vscode.window.showInputBox({
-        prompt: `Введите имя подкласса для "${item.className}"`,
+        prompt: vscode.l10n.t("prompt.addSubClass", item.className),
         validateInput: (value) => {
-          return value && value.trim() ? null : 'Имя подкласса не может быть пустым';
+          return value && value.trim() ? null : vscode.l10n.t('validation.emptySubClassName');
         }
       });
 
       if (subClassName) {
-        await treeDataProvider.addSubClass(item, subClassName.trim()); // Добавлен await
+        await treeDataProvider.addSubClass(item, subClassName.trim());
       }
     }),
 
     vscode.commands.registerCommand("classNavigator.removeClass", async (item: TreeItem) => {
+      const yesButton = vscode.l10n.t("confirm.yes");
       const confirm = await vscode.window.showWarningMessage(
-        `Вы уверены, что хотите удалить класс "${item.className}"?`,
+        vscode.l10n.t("prompt.removeClass", item.className),
         { modal: true },
-        "Да"
+        yesButton
       );
 
-      if (confirm === "Да") {
+      if (confirm === yesButton) {
         await treeDataProvider.removeClass(item);
       }
     })
   ];
 
-  // Регистрация всех команд в контексте
-  context.subscriptions.push(...commands);
+  context.subscriptions.push(treeView, ...commands);
 
   console.log('HTML Class Navigator extension activated');
 }

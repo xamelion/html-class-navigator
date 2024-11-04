@@ -1,0 +1,23 @@
+{
+  "command.rename": "Переименовать класс",
+  "command.addClass": "Добавить новый класс",
+  "command.addSubClass": "Добавить подкласс",
+  "command.removeClass": "Удалить класс",
+  "prompt.renameClass": "Введите новое имя класса",
+  "prompt.addClass": "Введите имя нового класса",
+  "prompt.addSubClass": "Введите имя подкласса для \"{0}\"",
+  "prompt.removeClass": "Вы уверены, что хотите удалить класс \"{0}\"?",
+  "error.noActiveEditor": "Нет активного редактора",
+  "error.addClassFailed": "Не удалось добавить класс",
+  "error.renameClassFailed": "Не удалось переименовать класс",
+  "error.removeClassFailed": "Не удалось удалить класс",
+  "message.selectHtmlFile": "Выберите HTML файл",
+  "message.placeCursorInClassAttribute": "Поставьте курсор в атрибут \"class\"",
+  "confirm.yes": "Да",
+  "validation.emptyClassName": "Имя класса не может быть пустым",
+  "validation.emptySubClassName": "Имя подкласса не может быть пустым",
+  "menu.contextMenu.rename": "Переименовать класс",
+  "menu.contextMenu.addClass": "Добавить новый класс",
+  "menu.contextMenu.addSubClass": "Добавить подкласс",
+  "menu.contextMenu.removeClass": "Удалить класс"
+}
