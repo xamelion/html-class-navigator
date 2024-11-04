@@ -4,15 +4,16 @@ import { TreeItem } from "../models/TreeItem";
 interface DeviceDescription {
   prefix: string;
   description: string;
+  order: number;
 }
 
 export class HtmlClassParser {
   private static readonly deviceTypes: DeviceDescription[] = [
-    { prefix: "ph", description: "Телефон" },
-    { prefix: "tb", description: "Планшет" },
-    { prefix: "lp", description: "Ноутбук" },
-    { prefix: "dk", description: "Десктоп" },
-    { prefix: "wd", description: "Широкий формат" }
+    { prefix: "ph", description: "Телефон", order: 1 },
+    { prefix: "tb", description: "Планшет", order: 2 },
+    { prefix: "lp", description: "Ноутбук", order: 3 },
+    { prefix: "dk", description: "Десктоп", order: 4 },
+    { prefix: "wd", description: "Широкий формат", order: 5 }
   ];
 
   public static findClassAtCursor(
@@ -44,7 +45,8 @@ export class HtmlClassParser {
       this.addClassNodeToTree(rootElements, classNameParts, "");
     });
 
-    return rootElements;
+    // Сортируем корневые элементы
+    return this.sortTreeItems(rootElements);
   }
 
   private static addClassNodeToTree(
@@ -80,6 +82,8 @@ export class HtmlClassParser {
         existingItem.subItems = [];
       }
       this.addClassNodeToTree(existingItem.subItems, classNameParts.slice(1), currentPath);
+      // Сортируем подэлементы после добавления
+      existingItem.subItems = this.sortTreeItems(existingItem.subItems);
     } else {
       existingItem.collapsibleState = vscode.TreeItemCollapsibleState.None;
     }
@@ -90,6 +94,32 @@ export class HtmlClassParser {
       .filter(device => className.includes(device.prefix))
       .map(device => device.description)
       .join(" ");
+  }
+
+  private static getDeviceOrder(className: string): number {
+    const device = this.deviceTypes.find(d => className.includes(d.prefix));
+    return device ? device.order : 0;
+  }
+
+  private static sortTreeItems(items: TreeItem[]): TreeItem[] {
+    return items.sort((a, b) => {
+      const orderA = this.getDeviceOrder(a.className);
+      const orderB = this.getDeviceOrder(b.className);
+
+      // Сначала сортируем по порядку устройств
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // Затем по алфавиту
+      return a.className.localeCompare(b.className);
+    }).map(item => {
+      // Рекурсивно сортируем подэлементы
+      if (item.subItems && item.subItems.length > 0) {
+        item.subItems = this.sortTreeItems(item.subItems);
+      }
+      return item;
+    });
   }
 
   public static updateClassName(
