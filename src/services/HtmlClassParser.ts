@@ -245,9 +245,13 @@ export class HtmlClassParser {
   ): Promise<boolean> {
     return this.processClassAtCursor(document, position, (matchResult, cursorOffset, classValueStart, classValueEnd) => {
       if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
-        const currentClasses = split(matchResult[2], /\s+/).filter(cls => 
-          !cls.startsWith(`${classNameToRemove}:`) && cls !== classNameToRemove
-        );
+        const currentClasses = split(matchResult[2], /\s+/).filter(cls => {
+          // Извлекаем имя класса без префикса устройства
+          const parts = cls.split(':');
+          const className = parts[parts.length - 1];
+          // Проверяем, не совпадает ли имя класса с удаляемым
+          return className !== classNameToRemove;
+        });
         return this.applyEdit(document, classValueStart, classValueEnd, join(currentClasses, ' '));
       }
       return false;
