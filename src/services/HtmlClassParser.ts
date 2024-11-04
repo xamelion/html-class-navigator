@@ -192,11 +192,15 @@ export class HtmlClassParser {
     position: vscode.Position,
     newClassName: string
   ): Promise<boolean> {
+    console.log(`Attempting to add class at cursor: ${newClassName}`);
     return this.processClassAtCursor(document, position, (matchResult, cursorOffset, classValueStart, classValueEnd) => {
+      console.log(`Cursor offset: ${cursorOffset}, Class value range: ${classValueStart}-${classValueEnd}`);
       if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
         const newValue = matchResult[2] ? `${matchResult[2]} ${newClassName}` : newClassName;
+        console.log(`New class value: ${newValue}`);
         return this.applyEdit(document, classValueStart, classValueEnd, newValue);
       }
+      console.log(`Cursor is not within class attribute range.`);
       return false;
     });
   }
@@ -252,18 +256,47 @@ export class HtmlClassParser {
   ): any {
     const documentText = document.getText();
     const cursorOffset = document.offsetAt(position);
-    const classPattern = /class\s*=\s*(["'])(.*?)\1/g;
-    
-    let matchResult;
-    while ((matchResult = classPattern.exec(documentText)) !== null) {
-      const classValueStart = matchResult.index + matchResult[0].indexOf(matchResult[1]) + 1;
-      const classValueEnd = classValueStart + matchResult[2].length;
+    console.log(`Processing cursor at position: Line ${position.line}, Character ${position.character}`);
+    console.log(`Document text length: ${documentText.length}, Cursor offset: ${cursorOffset}`);
 
-      const result = callback(matchResult, cursorOffset, classValueStart, classValueEnd);
-      if (result !== null) {
-        return result;
+    // Добавим вывод текста вокруг курсора для контекста
+    const startContext = Math.max(0, cursorOffset - 50);
+    const endContext = Math.min(documentText.length, cursorOffset + 50);
+    const contextText = documentText.substring(startContext, endContext);
+    console.log(`Text context around cursor: "${contextText}"`);
+    console.log(`Cursor position in context: ${cursorOffset - startContext}`);
+
+    const classPattern = /class\s*=\s*(["'])(.*?)\1/g;
+    let matchCount = 0;
+    let matchResult;
+
+    while ((matchResult = classPattern.exec(documentText)) !== null) {
+      matchCount++;
+      const fullMatch = matchResult[0];
+      const quote = matchResult[1];
+      const classValue = matchResult[2];
+      const matchStart = matchResult.index;
+      const matchEnd = matchStart + fullMatch.length;
+      
+      // Изменяем логику: теперь проверяем, находится ли курсор в пределах всего атрибута class
+      const isInClassAttribute = cursorOffset >= matchStart && cursorOffset <= matchEnd;
+      
+      console.log(`Found class attribute #${matchCount}:`);
+      console.log(`- Full match: "${fullMatch}"`);
+      console.log(`- Class value: "${classValue}"`);
+      console.log(`- Full match position: ${matchStart}-${matchEnd}`);
+      console.log(`- Cursor offset: ${cursorOffset}`);
+      console.log(`- Is cursor in attribute range: ${isInClassAttribute}`);
+
+      if (isInClassAttribute) {
+        const classValueStart = matchStart + fullMatch.indexOf(quote) + 1;
+        const classValueEnd = classValueStart + classValue.length;
+        console.log(`Processing class attribute at cursor position`);
+        return callback(matchResult, cursorOffset, classValueStart, classValueEnd);
       }
     }
+
+    console.log(`No matching class attribute found (checked ${matchCount} matches)`);
     return null;
   }
 
@@ -308,6 +341,7 @@ export class HtmlClassParser {
     end: number,
     newValue: string
   ): Thenable<boolean> {
+    console.log(`Applying edit from ${start} to ${end} with new value: ${newValue}`);
     const edit = new vscode.WorkspaceEdit();
     const range = new vscode.Range(
       document.positionAt(start),
