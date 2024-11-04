@@ -116,7 +116,28 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
       }
     }
 
-
     this.refreshTree(); // Обновляем дерево после успешного переименования
+  }
+
+  public async removeClass(item: TreeItem): Promise<void> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage("Нет активного редактора");
+      return;
+    }
+
+    const position = editor.selection.active;
+    const success = await HtmlClassParser.removeClassAtCursor(
+      editor.document,
+      position,
+      item.className
+    );
+
+    if (!success) {
+      vscode.window.showErrorMessage("Не удалось удалить класс");
+      return;
+    }
+
+    this.refreshTree();
   }
 }

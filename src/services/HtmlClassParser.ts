@@ -227,4 +227,35 @@ export class HtmlClassParser {
     }
     return false;
   }
+
+  public static async removeClassAtCursor(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    classNameToRemove: string
+  ): Promise<boolean> {
+    const documentText = document.getText();
+    const cursorOffset = document.offsetAt(position);
+    const classPattern = /class\s*=\s*(["'])(.*?)\1/g;
+    
+    let matchResult;
+    while ((matchResult = classPattern.exec(documentText)) !== null) {
+      const classValueStart = matchResult.index + matchResult[0].indexOf(matchResult[1]) + 1;
+      const classValueEnd = classValueStart + matchResult[2].length;
+
+      if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
+        const currentClasses = matchResult[2].split(/\s+/).filter(cls => cls !== classNameToRemove);
+        const newValue = currentClasses.join(' ');
+
+        const edit = new vscode.WorkspaceEdit();
+        const range = new vscode.Range(
+          document.positionAt(classValueStart),
+          document.positionAt(classValueEnd)
+        );
+        
+        edit.replace(document.uri, range, newValue);
+        return vscode.workspace.applyEdit(edit);
+      }
+    }
+    return false;
+  }
 }

@@ -48,6 +48,18 @@ export function activate(context: vscode.ExtensionContext) {
       if (subClassName) {
         await treeDataProvider.addSubClass(item, subClassName.trim()); // Добавлен await
       }
+    }),
+
+    vscode.commands.registerCommand("classNavigator.removeClass", async (item: TreeItem) => {
+      const confirm = await vscode.window.showWarningMessage(
+        `Вы уверены, что хотите удалить класс "${item.className}"?`,
+        { modal: true },
+        "Да"
+      );
+
+      if (confirm === "Да") {
+        await treeDataProvider.removeClass(item);
+      }
     })
   ];
 

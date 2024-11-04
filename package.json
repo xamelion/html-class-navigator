@@ -32,6 +32,10 @@
         {
           "command": "classNavigator.addSubClass",
           "when": "view == classNavigator && viewItem == 'renameable'"
+        },
+        {
+          "command": "classNavigator.removeClass",
+          "when": "view == classNavigator && viewItem == 'renameable'"
         }
       ]
     },
@@ -47,6 +51,10 @@
       {
         "command": "classNavigator.addSubClass",
         "title": "Добавить подкласс"
+      },
+      {
+        "command": "classNavigator.removeClass",
+        "title": "Удалить класс"
       }
     ],
     "viewsContainers": {
