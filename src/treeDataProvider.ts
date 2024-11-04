@@ -2,6 +2,10 @@ import * as vscode from "vscode";
 import { TreeItem } from "./models/TreeItem";
 import { HtmlClassParser } from "./services/HtmlClassParser";
 
+/**
+ * Провайдер данных для древовидного представления HTML-классов
+ * Управляет отображением и модификацией классов в редакторе
+ */
 export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   private changeEmitter = new vscode.EventEmitter<TreeItem | undefined | void>();
   readonly onDidChangeTreeData = this.changeEmitter.event;
@@ -10,6 +14,9 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     this.setupEventListeners();
   }
 
+  /**
+   * Устанавливает слушатели событий редактора для обновления дерева
+   */
   private setupEventListeners(): void {
     vscode.window.onDidChangeActiveTextEditor(() => this.refreshTree());
     vscode.window.onDidChangeTextEditorSelection(() => this.refreshTree());
@@ -24,14 +31,22 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     return element;
   }
 
+  /**
+   * Возвращает дочерние элементы для узла дерева
+   * @param element Родительский элемент или undefined для корневого уровня
+   */
   getChildren(element?: TreeItem): Thenable<TreeItem[]> {
+    // Дочерние элементы для существующего узла
     if (element) {
       return Promise.resolve(element.subItems || []);
     }
 
+    // Корневой уровень
     const editor = vscode.window.activeTextEditor;
     if (!this.isValidHtmlEditor(editor)) {
-      return Promise.resolve([this.createMessageItem(vscode.l10n.t("message.selectHtmlFile"))]);
+      return Promise.resolve([
+        this.createMessageItem(vscode.l10n.t("message.selectHtmlFile"))
+      ]);
     }
 
     const classValue = HtmlClassParser.findClassAtCursor(
@@ -40,16 +55,24 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     );
 
     if (!classValue) {
-      return Promise.resolve([this.createMessageItem(vscode.l10n.t('message.placeCursorInClassAttribute'))]);
+      return Promise.resolve([
+        this.createMessageItem(vscode.l10n.t('message.placeCursorInClassAttribute'))
+      ]);
     }
 
     return Promise.resolve(HtmlClassParser.createClassTree(classValue));
   }
 
+  /**
+   * Проверяет, является ли активный редактор HTML-документом
+   */
   private isValidHtmlEditor(editor?: vscode.TextEditor): boolean {
     return !!editor && editor.document.languageId === "html";
   }
 
+  /**
+   * Создает элемент дерева с сообщением
+   */
   private createMessageItem(message: string): TreeItem {
     return new TreeItem(
       message,
@@ -58,18 +81,21 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     );
   }
 
+  // Основные методы для работы с классами
+
+  /**
+   * Добавляет новый класс в текущей позиции курсора
+   */
   public async addNewClass(className: string): Promise<void> {
-    console.log(`Adding new class: ${className}`);
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       vscode.window.showErrorMessage(vscode.l10n.t("error.noActiveEditor"));
       return;
     }
 
-    const position = editor.selection.active;
     const success = await HtmlClassParser.addClassAtCursor(
       editor.document,
-      position,
+      editor.selection.active,
       className
     );
 
@@ -79,9 +105,11 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     this.refreshTree();
-    console.log(`Class added successfully: ${className}`);
   }
 
+  // Далее следуют методы addSubClass, renameClass, removeClass, moveClass и moveToRoot
+  // с аналогичной структурой и обработкой ошибок
+  // ...остальные методы без изменений...
   public async addSubClass(parentItem: TreeItem, subClassName: string): Promise<void> {
     console.log(`Adding subclass: ${subClassName} to parent class: ${parentItem.className}`);
     const editor = vscode.window.activeTextEditor;

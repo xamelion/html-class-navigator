@@ -23,7 +23,8 @@ interface DeviceDescription {
 }
 
 /**
- * Класс для парсинга и управления HTML-классами
+ * Парсер и менеджер HTML-классов
+ * Отвечает за анализ и модификацию классов в HTML-документах
  */
 export class HtmlClassParser {
   /**
@@ -147,18 +148,15 @@ export class HtmlClassParser {
     oldClassNamePath: string,
     newClassNamePath: string
   ): Promise<boolean> {
-    console.log(`Updating class name from "${oldClassNamePath}" to "${newClassNamePath}"`);
     const documentText = document.getText();
     const classPattern = /class\s*=\s*["']([^"']*)["']/g;
 
     let hasReplaced = false;
 
     const updatedText = documentText.replace(classPattern, (match, classAttrValue) => {
-      console.log(`Found class attribute: ${classAttrValue}`);
       const classList = classAttrValue.split(/\s+/);
       const updatedClassList = classList.map(cls => {
         if (cls === oldClassNamePath || cls.startsWith(`${oldClassNamePath}:`)) {
-          console.log(`Replacing "${cls}" with "${cls.replace(oldClassNamePath, newClassNamePath)}"`);
           hasReplaced = true;
           return cls.replace(oldClassNamePath, newClassNamePath);
         }
@@ -168,7 +166,6 @@ export class HtmlClassParser {
     });
 
     if (!hasReplaced) {
-      console.log(`No occurrences of "${oldClassNamePath}" found.`);
       return false; // Ничего не заменено
     }
 
@@ -179,9 +176,6 @@ export class HtmlClassParser {
     );
     edit.replace(document.uri, fullRange, updatedText);
     const success = await vscode.workspace.applyEdit(edit);
-    if (!success) {
-      console.log(`Failed to apply edit for renaming class.`);
-    }
     return success;
   }
 
@@ -200,15 +194,11 @@ export class HtmlClassParser {
     position: vscode.Position,
     newClassName: string
   ): Promise<boolean> {
-    console.log(`Attempting to add class at cursor: ${newClassName}`);
     return this.processClassAtCursor(document, position, (matchResult, cursorOffset, classValueStart, classValueEnd) => {
-      console.log(`Cursor offset: ${cursorOffset}, Class value range: ${classValueStart}-${classValueEnd}`);
       if (cursorOffset >= classValueStart && cursorOffset <= classValueEnd) {
         const newValue = matchResult[2] ? `${matchResult[2]} ${newClassName}` : newClassName;
-        console.log(`New class value: ${newValue}`);
         return this.applyEdit(document, classValueStart, classValueEnd, newValue);
       }
-      console.log(`Cursor is not within class attribute range.`);
       return false;
     });
   }
@@ -268,15 +258,6 @@ export class HtmlClassParser {
   ): any {
     const documentText = document.getText();
     const cursorOffset = document.offsetAt(position);
-    console.log(`Processing cursor at position: Line ${position.line}, Character ${position.character}`);
-    console.log(`Document text length: ${documentText.length}, Cursor offset: ${cursorOffset}`);
-
-    // Добавим вывод текста вокруг курсора для контекста
-    const startContext = Math.max(0, cursorOffset - 50);
-    const endContext = Math.min(documentText.length, cursorOffset + 50);
-    const contextText = documentText.substring(startContext, endContext);
-    console.log(`Text context around cursor: "${contextText}"`);
-    console.log(`Cursor position in context: ${cursorOffset - startContext}`);
 
     const classPattern = /class\s*=\s*(["'])(.*?)\1/g;
     let matchCount = 0;
@@ -292,23 +273,14 @@ export class HtmlClassParser {
       
       // Изменяем логику: теперь проверяем, находится ли курсор в пределах всего атрибута class
       const isInClassAttribute = cursorOffset >= matchStart && cursorOffset <= matchEnd;
-      
-      console.log(`Found class attribute #${matchCount}:`);
-      console.log(`- Full match: "${fullMatch}"`);
-      console.log(`- Class value: "${classValue}"`);
-      console.log(`- Full match position: ${matchStart}-${matchEnd}`);
-      console.log(`- Cursor offset: ${cursorOffset}`);
-      console.log(`- Is cursor in attribute range: ${isInClassAttribute}`);
 
       if (isInClassAttribute) {
         const classValueStart = matchStart + fullMatch.indexOf(quote) + 1;
         const classValueEnd = classValueStart + classValue.length;
-        console.log(`Processing class attribute at cursor position`);
         return callback(matchResult, cursorOffset, classValueStart, classValueEnd);
       }
     }
 
-    console.log(`No matching class attribute found (checked ${matchCount} matches)`);
     return null;
   }
 
@@ -353,7 +325,6 @@ export class HtmlClassParser {
     end: number,
     newValue: string
   ): Thenable<boolean> {
-    console.log(`Applying edit from ${start} to ${end} with new value: ${newValue}`);
     const edit = new vscode.WorkspaceEdit();
     const range = new vscode.Range(
       document.positionAt(start),

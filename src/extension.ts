@@ -2,6 +2,10 @@ import * as vscode from 'vscode';
 import { TreeDataProvider } from './treeDataProvider';
 import { TreeItem } from './models/TreeItem';
 
+/**
+ * Точка входа расширения
+ * Инициализирует провайдер данных и регистрирует команды
+ */
 export function activate(context: vscode.ExtensionContext) {
   // Удаляем инициализацию локализации через config, она больше не нужна
   // VSCode автоматически загрузит файлы из папки l10n
@@ -14,27 +18,23 @@ export function activate(context: vscode.ExtensionContext) {
       dropMimeTypes: ['application/vnd.code.tree.classNavigator'],
       dragMimeTypes: ['application/vnd.code.tree.classNavigator'],
       handleDrag: (sources: readonly TreeItem[], dataTransfer: vscode.DataTransfer) => {
-        console.log(`Dragging items: ${sources.map(s => s.className).join(', ')}`);
         dataTransfer.set('application/vnd.code.tree.classNavigator', new vscode.DataTransferItem(sources[0]));
       },
       handleDrop: async (target: TreeItem | undefined, dataTransfer: vscode.DataTransfer) => {
-        console.log(`Dropping onto target: ${target?.className ?? 'root'}`);
         
         const source = dataTransfer.get('application/vnd.code.tree.classNavigator')?.value as TreeItem;
         if (!source) {
-          console.log('No source item found in drop data');
+          vscode.window.showErrorMessage(vscode.l10n.t('Невозможно переместить элемент'));
           return;
         }
 
         if (!source.classNamePath) {
-          console.log('Missing classNamePath on source');
           vscode.window.showErrorMessage(vscode.l10n.t('Невозможно переместить элемент'));
           return;
         }
 
         // Если target undefined - значит переносим в корень
         if (!target) {
-          console.log('Moving item to root');
           // При переносе в корень используем только имя класса без пути
           const newClassNamePath = source.className;
           await treeDataProvider.moveToRoot(source, newClassNamePath);
@@ -42,21 +42,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         if (!target.classNamePath) {
-          console.log('Missing classNamePath on target');
           vscode.window.showErrorMessage(vscode.l10n.t('Невозможно переместить элемент'));
           return;
         }
 
         // Проверка на перетаскивание элемента на самого себя
         if (source.classNamePath === target.classNamePath) {
-          console.log('Attempted to drop item onto itself');
           vscode.window.showWarningMessage(vscode.l10n.t('Нельзя переместить элемент на самого себя.'));
           return;
         }
 
         // Проверка на создание циклической зависимости
         if (target.classNamePath.startsWith(source.classNamePath)) {
-          console.log('Attempted to create circular dependency');
           vscode.window.showWarningMessage(vscode.l10n.t('Нельзя переместить элемент в его потомка.'));
           return;
         }
@@ -69,7 +66,6 @@ export function activate(context: vscode.ExtensionContext) {
   // Регистрация команд
   const commands = [
     vscode.commands.registerCommand("classNavigator.rename", async (item: TreeItem) => {
-      console.log(`Command: rename class ${item.className}`);
       const newClassName = await vscode.window.showInputBox({
         prompt: vscode.l10n.t("prompt.renameClass"),
         value: item.className,
@@ -84,7 +80,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand("classNavigator.addClass", async () => {
-      console.log("Command: add new class");
       const className = await vscode.window.showInputBox({
         prompt: vscode.l10n.t("prompt.addClass"),
         validateInput: (value) => {
@@ -98,7 +93,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand("classNavigator.addSubClass", async (item: TreeItem) => {
-      console.log(`Command: add subclass to ${item.className}`);
       const subClassName = await vscode.window.showInputBox({
         prompt: vscode.l10n.t("prompt.addSubClass", item.className),
         validateInput: (value) => {
@@ -112,7 +106,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand("classNavigator.removeClass", async (item: TreeItem) => {
-      console.log(`Command: remove class ${item.className}`);
       const yesButton = vscode.l10n.t("confirm.yes");
       const confirm = await vscode.window.showWarningMessage(
         vscode.l10n.t("prompt.removeClass", item.className),
@@ -127,8 +120,6 @@ export function activate(context: vscode.ExtensionContext) {
   ];
 
   context.subscriptions.push(treeView, ...commands);
-
-  console.log('HTML Class Navigator extension activated');
 }
 
 export function deactivate() {
